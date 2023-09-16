@@ -1,8 +1,8 @@
 {
-    "Comment": "Spotify Flow",
-    "StartAt": "Get Spotify Playlists",
+    "Comment": "Mercado Livre Flow",
+    "StartAt": "Get Mercado Livre Items",
     "States": {
-      "Get Spotify Playlists": {
+      "Get Mercado Livre Items": {
         "Type": "Task",
         "Resource": "arn:aws:states:::lambda:invoke",
         "OutputPath": "$.Payload",
@@ -23,15 +23,15 @@
             "BackoffRate": 2
           }
         ],
-        "Next": "Has Next Playlist?"
+        "Next": "Has Next Items?"
       },
-      "Has Next Playlist?": {
+      "Has Next Items?": {
         "Type": "Choice",
         "Choices": [
           {
-            "Variable": "$.next_playlist",
+            "Variable": "$.next_items",
             "IsPresent": true,
-            "Next": "Get Spotify Playlists"
+            "Next": "Get Mercado Livre Items"
           }
         ],
         "Default": "Success"

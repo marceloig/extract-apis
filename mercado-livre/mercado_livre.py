@@ -20,7 +20,7 @@ def handler(event, context):
         
         data = ml.get(event.get('next_items'))
 
-        save(table_name, ml, data['items'])
+        #save(table_name, ml, data['items'])
         
         if not build_next(data):
             return {}
@@ -53,7 +53,7 @@ def build_next(data):
 class MercadoLivre:
     def __init__(self, access_token):
         self.headers = {"Authorization": "Bearer " + access_token}
-        
+
     def get(self, url):
         response =  requests.get(url, headers=self.headers)
         if response.status_code != 200:
