@@ -29,13 +29,13 @@ module "docker_image_mercado_livre" {
       }
     ]
   })
-  image_tag   = "0.22"
+  image_tag   = "0.1"
   source_path = "mercado-livre"
   platform    = "linux/amd64"
 }
 
 
-module "lambda_function_mercado_livre" {
+module "lambda_mercado_livre" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "5.0.0"
 
@@ -50,14 +50,14 @@ module "lambda_function_mercado_livre" {
   architectures  = ["x86_64"]
 
   environment_variables = {
-    TABLE_NAME    = ""
+    TABLE_NAME = ""
   }
   attach_policy_statements = true
   policy_statements = {
     dynamodb = {
       effect    = "Allow",
-      actions   = ["dynamodb:*"],
-      resources = [module.dynamodb_table.dynamodb_table_arn]
+      actions   = ["s3:*"],
+      resources = ["*"]
     }
   }
   create_current_version_allowed_triggers = false
@@ -67,9 +67,9 @@ module "step_function" {
   source  = "terraform-aws-modules/step-functions/aws"
   version = "3.1.0"
 
-  name = "${local.name}-mercado-livre"
+  name = "sf-${local.name}-mercado-livre"
   definition = templatefile("${path.module}/states.tpl", {
-    lambda_function_arn = module.lambda_function_mercado_livre.lambda_function_arn
+    lambda_function_arn = module.lambda_mercado_livre.lambda_function_arn
   })
 
   logging_configuration = {
@@ -78,7 +78,7 @@ module "step_function" {
   }
   service_integrations = {
     lambda = {
-      lambda = [module.lambda_function_mercado_livre.lambda_function_arn, "${module.lambda_function_mercado_livre.lambda_function_arn}:*"]
+      lambda = [module.lambda_mercado_livre.lambda_function_arn, "${module.lambda_mercado_livre.lambda_function_arn}:*"]
     }
   }
 
