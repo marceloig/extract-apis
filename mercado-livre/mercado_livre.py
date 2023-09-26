@@ -6,13 +6,13 @@ import json
 from aws_lambda_powertools import Logger
 
 logger = Logger()
+BUCKET_NAME = os.environ["BUCKET_NAME"]
 
 @logger.inject_lambda_context
 def handler(event, context):
     
     try:
         logger.info(event)
-        table_name = os.environ["TABLE_NAME"]
 
         validate(event)
 
@@ -20,26 +20,24 @@ def handler(event, context):
         
         data = ml.get(event.get('next_items'))
 
-        #save(table_name, ml, data['items'])
-        
-        if not build_next(data):
-            return {}
-        
-        output = {
-            'next_items': build_next(data), 
-            'access_token': event.get('access_token')
-            }
+        save(event.get('entity'), data['results'])
 
-        return output
+        if not build_next(data):
+            event.pop('next_items')
+            return event
+        
+        event['next_items'] = build_next(data)
+
+        return event
     except Exception as e:
         logger.error(e)
         raise e
 
-def save(table_name, items):
-    
-    dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table(table_name)
-
+def save(entity, items):
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(BUCKET_NAME)
+    for item in items:
+        bucket.put_object(Key=f'{entity}/{item["id"]}.json', Body=json.dumps(item))
 
 def validate(event):
     if event.get('next_items') == None:
